@@ -1,5 +1,5 @@
 module CCode { 
    header "CSources/bridge.h"
-   link "CCode"
+   link "a200_swift"
    export * 
 }
