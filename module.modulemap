@@ -1,5 +1,5 @@
 module CCode { 
-   header "CSources/CCode.h"
+   header "CSources/bridge.h"
    link "CCode"
    export * 
 }
