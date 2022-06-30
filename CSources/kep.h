@@ -1,5 +1,6 @@
 /* General definitions for aa program. */
-
+#define DE431BSP 1
+//#define ZERO_INPUTS 0
 #include <stdio.h>
 
 /* Indicate the endian-ness of your computer's float format.

@@ -69,7 +69,7 @@ double J1900 = 2415020.0;	/* 1900 January 0, 12h UT */
 /* Speed of light, in astronomical units per day. */
 double Clightaud = 173.144632720536344565;
 /* Speed of light, 299792.458 meters per second */
-double Clight; 
+double Clight;
 /* Equatorial radius of Earth, in au. */
 double Rearthau =  4.26352325064817808471e-5;
 
@@ -443,7 +443,7 @@ double UT = 0.0;
  *      = 1 if input time is TDT,
  *      = 2 if input time is UT.
  */
-int jdflag = 0;
+int jdflag = 1;
 
 /* correction vector, saved for display  */
 double dp[3] = {0.0};
@@ -468,6 +468,69 @@ static int ntab = 1;
 static int itab;
 struct orbit *elobject;	/* pointer to orbital elements of object */
 
+
+void CalcJPL(double UnixTimeStamp, int planet)
+{
+
+    int i;
+
+    kinit();
+
+    loop:
+    prtflg = 1;
+
+    JD = UnixTimeStamp;
+    JD = JD / 86400 + 2440587.5;  // Convert to Julian day
+    update(); /* find UT and ET */
+    //printf( "Julian day %.7f\n", JD );
+
+    objnum= planet;
+    switch(objnum)
+        {
+        case 0: elobject = 0;
+            //printf( "\n                   The Sun\n" );
+            break;
+        case 1: elobject = &mercury; break;
+        case 2: elobject = &venus; break;
+        case 3: elobject = 0;
+            //printf( "\n                   The Moon\n" );
+            break;
+        case 4: elobject = &mars; break;
+        case 5: elobject = &jupiter; break;
+        case 6: elobject = &saturn; break;
+        case 7: elobject = &uranus; break;
+        case 8: elobject = &neptune; break;
+        case 9: elobject = &pluto; break;
+        default:
+            break;
+        //printf( "Operator error.\n" );
+        }
+
+    if( elobject == (struct orbit *)&fstar )
+        showcname( &elobject->obname[0] );
+    else if( elobject )
+        //printf( "\n                  %s\n", &elobject->obname[0] );
+
+    jdstart = JD;
+
+        update();
+        if(ephfile)
+          fprintf( ephfile, "%.7f", JD );
+    /* Always calculate heliocentric position of the earth */
+        kepler( TDT, &earth, rearth, eapolar );
+
+    switch( objnum )
+        {
+        case 0: dosun(); iter_trnsit( dosun ); break;
+        case 3: domoon(); iter_trnsit( domoon ); break;
+        default: doplanet(); iter_trnsit( doplanet ); break;
+        }
+        printf( "\n" );
+        if(ephfile)
+          fprintf( ephfile, "\n" );
+}
+
+
 /* Main program starts here.
  */
 int
@@ -478,7 +541,6 @@ int i;
 kinit();
 
 loop:
-
 prtflg = 1;
 
 
@@ -489,16 +551,12 @@ prtflg = 1;
 //printf( "Julian day %.7f\n", JD );
 
 
-getnum( "Enter UT timestamp ", &JD, dblfmt );
+getnum( "Enter Unix Timestamp ", &JD, dblfmt );
 JD = JD / 86400 + 2440587.5;  // Convert to Julian day
 update(); /* find UT and ET */
 printf( "Julian day %.7f\n", JD );
 
-getnum( "Enter interval between tabulations in days", &djd, dblfmt );
-getnum( "Number of tabulations to display", &ntab, intfmt );
-if( ntab <= 0 )
-	ntab = 1;
-
+ntab=1;
 loop1:
 
 #if LIB403

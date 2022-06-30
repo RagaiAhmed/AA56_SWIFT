@@ -554,6 +554,9 @@ char *msg;
 void *num;
 char *format;
 {
+#ifdef ZERO_INPUTS
+return 0;
+#endif // ZERO_INPUTS
 char s[40];
 
 printf( "%s (", msg );
