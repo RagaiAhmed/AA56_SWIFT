@@ -10,7 +10,7 @@ endif
 
 CC= clang
 #CFLAGS=  -O2 -Wall
-CFLAGS=  -g -Wall
+CFLAGS=  -g -Wall -fPIC
 OBJS = altaz.o angles.o annuab.o constel.o deflec.o deltat.o diurab.o \
 diurpx.o dms.o epsiln.o fk4fk5.o kepler.o kfiles.o lightt.o lonlat.o \
 nutate.o precess.o refrac.o rplanet.o rstar.o sidrlt.o sun.o domoon.o \
