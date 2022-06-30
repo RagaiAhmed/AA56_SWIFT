@@ -480,9 +480,17 @@ kinit();
 loop:
 
 prtflg = 1;
-printf( "Enter starting date of tabulation\n" );
-JD = zgetdate(); /* date */
-JD += gethms();	/* time of day */
+
+
+//printf( "Enter starting date of tabulation\n" );
+//JD = zgetdate(); /* date */
+//JD += gethms();	/* time of day */
+//update(); /* find UT and ET */
+//printf( "Julian day %.7f\n", JD );
+
+
+getnum( "Enter UT timestamp ", &JD, dblfmt );
+JD = JD / 86400 + 2440587.5;  // Convert to Julian day
 update(); /* find UT and ET */
 printf( "Julian day %.7f\n", JD );
 
