@@ -1,4 +1,14 @@
-CC= gcc
+SHAREDLIB = aa56_swift.so
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	SHAREDLIBPATH = /usr/lib
+endif
+ifeq ($(UNAME_S),Darwin)
+	SHAREDLIBPATH = /usr/local/lib
+endif
+
+CC= clang
 #CFLAGS=  -O2 -Wall
 CFLAGS=  -g -Wall
 OBJS = altaz.o angles.o annuab.o constel.o deflec.o deltat.o diurab.o \
