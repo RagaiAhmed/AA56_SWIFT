@@ -100,3 +100,13 @@ plu404.o: plu404.c $(INCS)
 mlr404.o: mlr404.c $(INCS)
 
 mlat404.o: mlat404.c $(INCS)
+
+
+install: 
+	$(CC) $(CFLAGS) -shared $(OBJS) -o $(SHAREDLIB)
+	cp $(SHAREDLIB) $(SHAREDLIBPATH)
+
+clean:
+	rm -f *.o
+	rm -f $(SHAREDLIB)
+	rm -f $(SHAREDLIBPATH)/$(SHAREDLIB)
