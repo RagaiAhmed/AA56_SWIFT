@@ -3,12 +3,6 @@
  *
  * Program by Steve Moshier.  */
 
-#include "kep.h"
-
-#if (DE200CD | DE200 | DE102 | SSYSTEM)
-#define IAU 1
-#endif
-
 #define WILLIAMS 1
 /* James G. Williams, "Contributions to the Earth's obliquity rate,
    precession, and nutation,"  Astron. J. 108, 711-724 (1994)  */
@@ -19,9 +13,7 @@
    mean elements for the Moon and the planets," Astronomy and Astrophysics
    282, 663-683 (1994)  */
 
-#ifndef IAU
 #define IAU 0
-#endif
 /* IAU Coefficients are from:
  * J. H. Lieske, T. Lederle, W. Fricke, and B. Morando,
  * "Expressions for the Precession Quantities Based upon the IAU
@@ -72,10 +64,9 @@
 #if __STDC__
 double cos (double);
 double sin (double);
-double fabs (double);
 int epsiln (double);
 #else
-double cos(), sin(), fabs();
+double cos(), sin();
 extern int epsiln();
 #endif
 #define COS cos
@@ -83,20 +74,20 @@ extern int epsiln();
 extern DOUBLE J2000; /* = 2451545.0, 2000 January 1.5 */
 extern DOUBLE STR; /* = 4.8481368110953599359e-6 radians per arc second */
 extern DOUBLE coseps, sineps; /* see epsiln.c */
-extern int epsiln();
 
 /* In WILLIAMS and SIMON, Laskar's terms of order higher than t^4
    have been retained, because Simon et al mention that the solution
    is the same except for the lower order terms.  */
 #if WILLIAMS
 static DOUBLE pAcof[] = {
-#if (DE403 | LIB403 | DE404 | DE405 | DE406 | DE406CD )
+#if 1
+  /* Corrections to Williams (1994) introduced in DE403.  */
  -8.66e-10, -4.759e-8, 2.424e-7, 1.3095e-5, 1.7451e-4, -1.8055e-3,
  -0.235316, 0.076, 110.5414, 50287.91959
 #else
  -8.66e-10, -4.759e-8, 2.424e-7, 1.3095e-5, 1.7451e-4, -1.8055e-3,
  -0.235316, 0.076, 110.5407, 50287.70000
-#endif /* not DE403 */
+#endif
  };
 #endif
 #if SIMON
@@ -168,12 +159,12 @@ int precess( R, J, direction )
 DOUBLE R[], J;
 int direction;
 {
-DOUBLE A, B, T, pA, W, z, TH;
+DOUBLE A, B, T, pA, W, z;
 DOUBLE x[3];
 DOUBLE *p;
 int i;
 #if IAU
-DOUBLE sinth, costh, sinZ, cosZ, sinz, cosz, Z;
+DOUBLE sinth, costh, sinZ, cosZ, sinz, cosz, Z, TH;
 #endif
 
 if( J == J2000 )
@@ -185,7 +176,7 @@ T = (J - J2000)/36525.0;
 
 #if IAU
 /* Use IAU formula only for a few centuries, if at all.  */
-if( fabs(T) > 2.0 )
+if( FABS(T) > Two )
 	goto laskar;
 
 Z =  (( 0.017998*T + 0.30188)*T + 2306.2181)*T*STR;
@@ -234,13 +225,18 @@ goto done;
 laskar:
 #endif /* IAU */
 
-/* Implementation by elementary rotations. */
-
-/* Obliquity of the equator at initial date.  */
+/* Implementation by elementary rotations using Laskar's expansions.
+ * First rotate about the x axis from the initial equator
+ * to the ecliptic. (The input is equatorial.)
+ */
 if( direction == 1 )
 	epsiln( J ); /* To J2000 */
 else
 	epsiln( J2000 ); /* From J2000 */
+x[0] = R[0];
+z = coseps*R[1] + sineps*R[2];
+x[2] = -sineps*R[1] + coseps*R[2];
+x[1] = z;
 
 /* Precession in longitude
  */
@@ -258,20 +254,6 @@ W = *p++;
 for( i=0; i<10; i++ )
 	W = W * T + *p++;
 
-/* Inclination of the ecliptic of date to the J2000 ecliptic.  */
-p = inclcof;
-TH = *p++;
-for( i=0; i<10; i++ )
-	TH = TH * T + *p++;
-
-/* First rotate about the x axis from the initial equator
- * to the initial ecliptic. (The input is equatorial.)
- */
-x[0] = R[0];
-z = coseps*R[1] + sineps*R[2];
-x[2] = -sineps*R[1] + coseps*R[2];
-x[1] = z;
-
 /* Rotate about z axis to the node.
  */
 if( direction == 1 )
@@ -287,10 +269,14 @@ x[0] = z;
 /* Rotate about new x axis by the inclination of the moving
  * ecliptic on the J2000 ecliptic.
  */
+p = inclcof;
+z = *p++;
+for( i=0; i<10; i++ )
+	z = z * T + *p++;
 if( direction == 1 )
-	TH = -TH;
-B = COS(TH);
-A = SIN(TH);
+	z = -z;
+B = COS(z);
+A = SIN(z);
 z = B * x[1] + A * x[2];
 x[2] = -A * x[1] + B * x[2];
 x[1] = z;

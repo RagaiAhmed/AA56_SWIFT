@@ -6,65 +6,52 @@
 
 #include "kep.h"
 extern struct orbit earth;
-extern double rearth[];
-extern double pearthb[];
-extern double psunb[];
-extern double coseps, sineps, nutl, dradt, ddecdt;
-extern double Clightaud;
-
-/* Apparent geocentric ra, dec of the Sun.  */
-double psunapp[3];
 
 int dosun()
 {
 double r, x, y, t;
 double ecr[3], rec[3], pol[3];
-double pearthbT[3], psunbT[3], rsunT[3], rsunL[3];
 int i;
 double asin(), modtp(), sqrt(), cos(), sin();
+
 
 /* Display ecliptic longitude and latitude.
  */
 for( i=0; i<3; i++ )
-	rsunT[i] = -rearth[i];
+	ecr[i] = -rearth[i];
 r = eapolar[2];
 
 if( prtflg )
 	{
-	lonlat( rsunT, TDT, pol, 1 );
+	lonlat( ecr, TDT, pol, 1 );
 	}
 
-/* Rigorous light time iteration - AA page B39
+/* Philosophical note: the light time correction really affects
+ * only the Sun's barymetric position; aberration is due to
+ * the speed of the Earth.  In Newtonian terms the aberration
+ * is the same if the Earth is standing still and the Sun moving
+ * or vice versa.  Thus the following is actually wrong, but it
+ * differs from relativity only in about the 8th decimal.
+ * It should be done the same way as the corresponding planetary
+ * correction, however.
  */
-/* Save current earth and sun coordinates */
-for( i=0; i<3; i++ )
-  {
-    pearthbT[i] = pearthb[i];
-    psunbT[i] = psunb[i];
-  }
-/* Find the earth and sun at time TDT - t */
 pol[2] = r;
 for( i=0; i<2; i++ )
 	{
-	t = pol[2]/Clightaud;
-	kepler( TDT-t, &earth, rsunL, pol );
+	t = pol[2]/173.1446327;
+/* Find the earth at time TDT - t */
+	kepler( TDT-t, &earth, ecr, pol );
 	}
 r = pol[2];
 
-/* Apparent distance is the light time.  */
-fprintf( ephfile, " %.10e", Clightaud * t );
-
 for( i=0; i<3; i++ )
-  {
-    rsunL[i] = -rsunL[i];
-/* Sun t days ago minus earth now.  */
-    x = psunb[i] - pearthbT[i];
-    ecr[i] = x;
-/* Sun now minus earth now.  */
-    y = psunbT[i] - pearthbT[i];
-    rec[i] = y;
-    pol[i] = y - x; /* change in position */
-  }
+	{
+	x = -ecr[i];
+	y = -rearth[i];
+	ecr[i] = x;	/* position t days ago */
+	rec[i] = y;	/* position now */
+	pol[i] = y - x; /* change in position */
+	}
 
 if( prtflg )
 	{
@@ -75,19 +62,14 @@ if( prtflg )
 /* Estimate rate of change of RA and Dec
  * for use by altaz().
  */
-deltap( rsunL, rsunT, &dradt, &ddecdt );  /* see dms.c */
+deltap( ecr, rec, &dradt, &ddecdt );  /* see dms.c */
 dradt /= t;
 ddecdt /= t;
+
 
 /* There is no light deflection effect.
  * AA page B39.
  */
-
-/* Annual aberration.  */
-for( i=0; i<3; i++ )
-    ecr[i] /= r;
-
-annuab(ecr);
 
 /* precess to equinox of date
  */
@@ -101,25 +83,24 @@ for( i=0; i<3; i++ )
 epsiln( TDT );
 nutate( TDT, ecr );
 
-ephprint = 1;
+/* Display the final apparent R.A. and Dec.
+ * for equinox of date.
+ */
+if( prtflg )
+	printf ("%s.", whatconstel (ecr, TDT));
 showrd( "    Apparent:", ecr, pol );
-ephprint = 0;
-for( i=0; i<3; i++ )
-  psunapp[i] = pol[i];
 
-/* Show the apparent ecliptic longitude (AA page C2).
-   It is the geometric longitude plus nutation in longitude
-   plus aberration. */
+/* Show it in ecliptic coordinates */
 if( prtflg )
 	{
 	y  =  coseps * rec[1]  +  sineps * rec[2];
 	y = zatan2( rec[0], y ) + nutl;
-	printf( "Apparent longitude %.6f deg\n", RTD*y );
+	printf( "Apparent longitude %.3f deg\n", RTD*y );
 	}
 
-/* Report altitude and azimuth. Here pol[] is ra and dec.
+/* Report altitude and azimuth
  */
-pol[2] = r;
+
 altaz( pol, UT );
 return(0);
 }

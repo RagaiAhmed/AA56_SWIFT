@@ -6,9 +6,6 @@
  */
 
 #include "kep.h"
-extern double pobjb[], pearthb[];
-extern double Clightaud;
-extern double lighttime;
 
 int reduce( elemnt, q, e )
 struct orbit *elemnt;	/* orbital elements of q */
@@ -24,30 +21,19 @@ double sqrt(), asin(), log();
 for( i=0; i<3; i++ )
 	temp[i] = q[i];
 
-/* Display ecliptic longitude and latitude re equinox of date
- */
+/* Display ecliptic longitude and latitude, precessed to equinox
+    of date.  */
 if( prtflg )
 	lonlat( q, TDT, polar, 1 );
 
-/* If the object position was computed from heliocentric orbital
- * elements, then say that earth's barycentric position
- * is the same as its heliocentric position.
- */
-if( objnum == 99 )
-	{
-	for( i=0; i<3; i++ )
-		pearthb[i] = e[i];
-	}
 /* Adjust for light time (planetary aberration)
 */
 lightt( elemnt, q, e );
-/* Apparent distance is the light time.  */
-fprintf( ephfile, " %.10e", Clightaud * lighttime );
 
 /* Find Euclidean vectors between earth, object, and the sun
  */
 for( i=0; i<3; i++ )
-	p[i] = pobjb[i] - pearthb[i];
+	p[i] = q[i] - e[i];
 
 angles( p, q, e );
 
@@ -128,17 +114,22 @@ nutate( TDT, p );
  */
 if( prtflg )
 	printf ("%s.", whatconstel (p, TDT));
-ephprint = 1;
-showrd( "    Apparent:", p, polar );
-ephprint = 0;
+showrd( "  Apparent:", p, polar );
 
+/* Geocentric ecliptic longitude and latitude.  */
+if( prtflg )
+  {
+    printf ("Apparent geocentric ");
+    for( i=0; i<3; i++ )
+	p[i] *= EO;
+    lonlat( p, TDT, temp, 0 );
+  }
 /* Go do topocentric reductions.
  */
 polar[2] = EO;
 altaz( polar, UT );
 return(0);
 }
-
 
 
 extern struct orbit *elobject;

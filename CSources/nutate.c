@@ -25,22 +25,25 @@
  *                 tested against JPL DE403 ephemeris file.
  */
 
+
 #if __STDC__
 int sscc(int, double, int);
 extern int epsiln(double);
-double sin(double), cos(double), floor(double);
-int showcor (char *, double *, double *);
+extern int showcor(char *, double *, double *);
+double sin(double), cos(double), floor(double), fabs(double);
 int nutlo (double);
 #else
-int sscc(), epsiln(), showcor(), nutlo();
-double sin(), cos(), floor();
+int sscc(), epsiln(), showcor();
+double sin(), cos(), floor(), fabs();
 #endif
+
+#include "plantbl.h"
 
 /* The answers are posted here by nutlo():
  */
 double jdnut = -1.0;	/* time to which the nutation applies */
-double nutl = 0.0;	/* nutation in longitude (radians) */
-double nuto = 0.0;	/* nutation in obliquity (radians) */
+double nutl;	/* nutation in longitude (radians) */
+double nuto;	/* nutation in obliquity (radians) */
 extern double eps, coseps, sineps, STR;
 
 /* Each term in the expansion has a trigonometric
@@ -72,7 +75,7 @@ extern double eps, coseps, sineps, STR;
  * .0123	.0880		.0224	.0905
  * .0386	.1808		.0895	.1129
  */
-short nt[105*9] = {
+short FAR nt[105*9] = {
  0, 0, 0, 0, 2, 2062, 2,-895, 5,
 -2, 0, 2, 0, 1, 46, 0,-24, 0,
  2, 0,-2, 0, 0, 11, 0, 0, 0,
@@ -184,9 +187,8 @@ short nt[105*9] = {
 /* arrays to hold sines and cosines of multiple angles
  */
 
-double ss[5][8];
-double cc[5][8];
-extern double ss[5][8], cc[5][8];
+double FAR ss[5][8];
+double FAR cc[5][8];
 
 #define mod3600(x) ((x) - 1296000. * floor ((x)/1296000.))
 

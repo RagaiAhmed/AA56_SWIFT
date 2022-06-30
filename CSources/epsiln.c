@@ -1,19 +1,7 @@
 /* Obliquity of the ecliptic at Julian date J  */
 
-#include "kep.h"
-
-#if (DE403 | DE404 | DE405 | DE406 | DE406CD | LIB403)
 #define WILLIAMS 1
 #define SIMON 0
-#else
-#if (DE200 | DE200CD | DE102 | SSYSTEM)
-#define WILLIAMS 0
-#define SIMON 0
-#else
-#define WILLIAMS 0
-#define SIMON 1
-#endif
-#endif
 /* J. L. Simon, P. Bretagnon, J. Chapront, M. Chapront-Touze', G. Francou,
    and J. Laskar, "Numerical Expressions for precession formulae and
    mean elements for the Moon and the planets," Astronomy and Astrophysics
@@ -58,31 +46,30 @@ double T;
 
 if( J == jdeps )
 	return(0);
+T = (J - 2451545.0)/36525.0;
 
 #if WILLIAMS
-/* DE403 */
-	T = (J - 2451545.0)/365250.0;
+/* DE403 values. */
+	T /= 10.0;
 	eps = ((((((((( 2.45e-10*T + 5.79e-9)*T + 2.787e-7)*T
         + 7.12e-7)*T - 3.905e-5)*T - 2.4967e-3)*T
 	- 5.138e-3)*T + 1.9989)*T - 0.0175)*T - 468.33960)*T
 	+ 84381.406173;
 #else
+/* This expansion is from the AA.
+ * Note the official 1976 IAU number is 23d 26' 21.448", but
+ * the JPL numerical integration found 21.4119".
+ */
 #if SIMON
-	T = (J - 2451545.0)/365250.0;
+	T /= 10.0;
 	eps = ((((((((( 2.45e-10*T + 5.79e-9)*T + 2.787e-7)*T
         + 7.12e-7)*T - 3.905e-5)*T - 2.4967e-3)*T
 	- 5.138e-3)*T + 1.9989)*T - 0.0152)*T - 468.0927)*T
 	+ 84381.412;
 #else
-/* This expansion is from the AA.
- * Note the official 1976 IAU number is 23d 26' 21.448", but
- * the JPL numerical integration found 21.4119".
- */
-T = (J - 2451545.0)/36525.0;
 if( fabs(T) < 2.0 )
-	{
 	eps = ((1.813e-3*T - 5.9e-4)*T - 46.8150)*T + 84381.448;
-	}
+
 /* This expansion is from Laskar, cited above.
  * Bretagnon and Simon say, in Planetary Programs and Tables, that it
  * is accurate to 0.1" over a span of 6000 years. Laskar estimates the
@@ -91,7 +78,6 @@ if( fabs(T) < 2.0 )
  */
 else
 	{
-	T /= 10.0;
 	eps = ((((((((( 2.45e-10*T + 5.79e-9)*T + 2.787e-7)*T
         + 7.12e-7)*T - 3.905e-5)*T - 2.4967e-3)*T
 	- 5.138e-3)*T + 1.99925)*T - 0.0155)*T - 468.093)*T

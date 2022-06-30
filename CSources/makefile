@@ -1,79 +1,102 @@
+CC= gcc
+#CFLAGS=  -O2 -Wall
+CFLAGS=  -g -Wall
+OBJS = altaz.o angles.o annuab.o constel.o deflec.o deltat.o diurab.o \
+diurpx.o dms.o epsiln.o fk4fk5.o kepler.o kfiles.o lightt.o lonlat.o \
+nutate.o precess.o refrac.o rplanet.o rstar.o sidrlt.o sun.o domoon.o \
+trnsit.o vearth.o zatan2.o \
+gplan.o mer404.o ven404.o ear404.o mar404.o jup404.o \
+sat404.o ura404.o nep404.o plu404.o mlr404.o mlat404.o
 
-# Makefile for JPL ephemeris reader.
-# Ephemeris files can be obtained from JPL's ftp site navigator.jpl.nasa.gov
-# or on CD-ROM.
-SHAREDLIB = a200_swift.so
+INCS = kep.h plantbl.h
 
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Linux)
-	SHAREDLIBPATH = /usr/lib
-endif
-ifeq ($(UNAME_S),Darwin)
-	SHAREDLIBPATH = /usr/local/lib
-endif
+aa: aa.o $(OBJS) $(INCS)
+	$(CC) -o aa aa.o $(OBJS) -lm
+#	coff2exe aa
 
-# Name of your C compiler.
-CC = clang
+aa.o: aa.c $(INCS)
 
-# Define one of SSYSTEM, DE102, DE200, DE245, DE403, ... .
-# SSYSTEM is for the tabular ephemeris format from de118i.arc.
-# The others are to read JPL binary Chebyshev ephemerides.
-# DE102 and DE200 are for the old distributions in 9-track magtape format.
-# Use DE200CD for the CD-ROM or internet version.  To use fragments
-# from JPL's ftp site, define rec0 = 0 in deNNN.h, indicating that
-# there is no header information to skip over at the start of the file.
-# See the read.me file for other configuration instructions.
-# If your computer has IEEE floating point, you should not need to
-# translate the ASCII ephemeris because the program handles endian-ness
-# swapping if needed (the JPL files are big-endian).
-#CFLAGS = -O -DSSYSTEM=1
-#CFLAGS = -O -DDE102=1
-#CFLAGS = -O -DDE200=1
-#CFLAGS = -O -DDE200CD=1
-#CFLAGS = -O -DDE245=1
-#CFLAGS = -O -DDE400=1
-#CFLAGS = -O -DDE403=1
-#CFLAGS = -O -DDE404=1
-#CFLAGS = -O -DLIB403=1
-#CFLAGS = -O -DDE405=1
-#CFLAGS = -O -DDE406=1
-#CFLAGS = -O -DDE406CD=1
-#CFLAGS = -O -DDE421BSP=1
-#CFLAGS = -O -DDE408BSP=1
-#CFLAGS = -O -DDE430BSP=1
-CFLAGS = -O -DDE431BSP=1 -fPIC
+conjunct: conjunct.o $(OBJS) $(INCS)
+	$(CC) -o conjunct conjunct.o $(OBJS) -lm
+#	coff2exe conjunct
 
-OBJS = altaz.o angles.o annuab.o constel.o deflec.o deltat.o \
-diurab.o diurpx.o dms.o epsiln.o fk4fk5.o kepjpl.o kepi.o kepj.o \
-kfiles.o lightt.o lonlat.o nutate.o precess.o refrac.o \
-rplanet.o rstar.o sidrlt.o sun.o tdb.o trnsit.o vearth.o zatan2.o \
-moonjpl.o set3.o oparams.o rotate.o
+conjunct.o: conjunct.c $(INCS)
 
-XOBJS = kepjpl.o oparams.o lonlat.o epsiln.o nutate.o precess.o dms.o zatan2.o
+moonrise: moonrise.o $(OBJS) $(INCS)
+	$(CC) -o moonrise moonrise.o $(OBJS) -lm
 
-INCS = kep.h
+moonrise.o: moonrise.c $(INCS)
 
-all: aa200 # x200 testpo
+altaz.o: altaz.c $(INCS)
 
-aa200: aa200.o $(OBJS) $(INCS)
-	$(CC) $(CFLAGS) -o aa200 aa200.o $(OBJS) -lm
+angles.o: angles.c $(INCS)
 
-x200: x200.o $(XOBJS) $(INCS)
-	$(CC) $(CFLAGS) -o x200 x200.o $(XOBJS) -lm
+annuab.o: annuab.c $(INCS)
 
-install: 
-	$(CC) $(CFLAGS) -shared $(OBJS) -o $(SHAREDLIB)
-	cp $(SHAREDLIB) $(SHAREDLIBPATH)
+constel.o: constel.c $(INCS)
 
-# To run the installation test, you need the file of test vectors
-# called testpo.NNN as well as the ephemeris file deNNN.unx.
-testpo: testpo.o $(XOBJS)
-	$(CC) $(CFLAGS) -o testpo testpo.o $(XOBJS) -lm
+deflec.o: deflec.c $(INCS)
 
-clean:
-	rm -f *.o
-	rm -f $(SHAREDLIB)
-	rm -f $(SHAREDLIBPATH)/$(SHAREDLIB)
+deltat.o: deltat.c $(INCS)
 
+diurab.o: diurab.c $(INCS)
 
-	
+diurpx.o: diurpx.c $(INCS)
+
+dms.o: dms.c $(INCS)
+
+epsiln.o: epsiln.c $(INCS)
+
+fk4fk5.o: fk4fk5.c $(INCS)
+
+kepler.o: kepler.c $(INCS)
+
+kfiles.o: kfiles.c $(INCS)
+
+lightt.o: lightt.c $(INCS)
+
+lonlat.o: lonlat.c $(INCS)
+
+nutate.o: nutate.c $(INCS)
+
+precess.o: precess.c $(INCS)
+
+refrac.o: refrac.c $(INCS)
+
+rplanet.o: rplanet.c $(INCS)
+
+rstar.o: rstar.c $(INCS)
+
+sidrlt.o: sidrlt.c $(INCS)
+
+sun.o: sun.c $(INCS)
+
+trnsit.o: trnsit.c $(INCS)
+
+vearth.o: vearth.c $(INCS)
+
+zatan2.o: zatan2.c $(INCS)
+
+domoon.o: domoon.c $(INCS)
+
+ear404.o: ear404.c $(INCS)
+
+jup404.o: jup404.c $(INCS)
+
+mar404.o: mar404.c $(INCS)
+
+mer404.o: mer404.c $(INCS)
+
+nep404.o: nep404.c $(INCS)
+
+sat404.o: sat404.c $(INCS)
+
+ura404.o: ura404.c $(INCS)
+
+ven404.o: ven404.c $(INCS)
+
+plu404.o: plu404.c $(INCS)
+
+mlr404.o: mlr404.c $(INCS)
+
+mlat404.o: mlat404.c $(INCS)

@@ -9,18 +9,8 @@
  * Input is Julian date.  Output left in global array vearth[].
  */
 
-#ifdef _MSC_VER
-#undef DEBUG
-#define DEBUG 0
-#endif
-
-/* Barycentric position and velocity of the earth
- * at time jvearth.
- */
 double jvearth = -1.0;
 double vearth[3] = {0.0};
-double pearthb[3] = {0.0};
-extern double vearth[], pearthb[];
 
 #include "kep.h"
 
@@ -29,10 +19,10 @@ extern struct orbit earth;
 int velearth( J )
 double J;
 {
-double e[3], p[3];
+double e[3], p[3], t;
+int i;
 #if DEBUG
 double x[3], A, q;
-int i;
 #endif
 
 if( J == jvearth )
@@ -40,20 +30,17 @@ if( J == jvearth )
 
 jvearth = J;
 
-#if DEPOLYN
-kepler( TDT, &earth, e, p );
-#else
 /* calculate heliocentric position of the earth
  * as of a short time ago.
  */
-q = 0.005;
-kepler( TDT-q, &earth, e, p );
+t = 0.005;
+kepler( TDT-t, &earth, e, p );
+
 for( i=0; i<3; i++ )
-	vearth[i] = (rearth[i] - e[i])/q;
-#endif
+	vearth[i] = (rearth[i] - e[i])/t;
+
 #if DEBUG
 /* Generate display for comparison with Almanac values. */
-A = 0.0;
 for( i=0; i<3; i++ )
 	{
 	q = vearth[i];

@@ -34,8 +34,9 @@
 0.9672760 0.0 2433282.423 6.0 0.0 P/Halley's_Comet		17
 2450539.6403976 89.4297811 282.4707136 130.5924921 185.57984528 0.0
 0.995074405 0.0 2451545.0 1.0 0.0 Hale-Bopp                     18
+2452352.4807 28.1217 93.3663 34.6720 51.190 0.0
+0.990095 0.0 2451545.0 3.5 0.0 Ikeya-Zhang                      19
 ----
 epoch inclination node argperih meandistance dailymotion
 eccentricity meananomaly equinox mag semidiam name
 mean distance = perihelion distance / (1 - eccentricity) = q / (1-e)
-

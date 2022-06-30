@@ -2,10 +2,16 @@
 /* Disc file input routines to read initialization parameters
  * or file containing orbital elements.
  */
-#include "kep.h"
+
+#if unix
+#include <stdlib.h>
+#endif
+
 #if __BORLANDC__
 #include <stdlib.h>
 #endif
+
+#include "kep.h"
 
 #ifdef ANSIPROT
 #include <string.h>
@@ -14,12 +20,8 @@
 #ifdef _MSC_VER
 #if _MSC_VER >= 1000
 #include <stdlib.h>
-#endif
 #include <string.h>
 #endif
-
-#if UNIX
-#include <stdlib.h>
 #endif
 
 #ifndef ANSIPROT
@@ -31,16 +33,6 @@ extern char *intfmt, *strfmt;/* see dms.c */
 static char starnam[80] = {'s','t','a','r','.','c','a','t','\0'};
 static char orbnam[80] = {'o','r','b','i','t','.','c','a','t','\0'};
 static int linenum = 1;
-#define DEFILE_SIZE 128
-char defile[DEFILE_SIZE] = {0}; /* DE file */
-extern char defile[];
-#if DE431BSP
-char defile_part_1[DEFILE_SIZE];
-#endif
-extern double au;  /* length of astronomical unit  */
-extern double radearth; /* Earth radius in km.  */
-extern double Clight, clight;
-extern double Clightaud;
 
 /* Read initialization file aa.ini
  * and adjust topocentric coordinates of observer.
@@ -63,98 +55,48 @@ double atpress = 1013.0; /* atmospheric pressure, millibars */
 /* Distance from observer to center of earth, in earth radii
  */
 double trho = 0.9985;
-static double flat = 298.257222;
+double flat = 298.257222;
+double height = 0.0;
 
-/* This is not necessarily the same value used in ephemeris calculation. */
-double aearth = 6378137.;
+/* Constants used elsewhere. These are DE403 values. */
+double aearth = 6378137.;  /* Radius of the earth, in meters.  */
+double au = 1.49597870691e8; /* Astronomical unit, in kilometers.  */
+double emrat = 81.300585;  /* Earth/Moon mass ratio.  */
+double Clight = 2.99792458e5;  /* Speed of light, km/sec  */
+double Clightaud; /* C in au/day  */
 
-static double height = 0.0;
 extern double tlong, tlat, glat, trho, attemp, atpress, dtgiven;
-
-/* ASCII output file for ephemeris.  */
-FILE *ephfile;
+extern double Rearth;
 
 int kinit()
 {
 double a, b, fl, co, si, u;
 FILE *f, *fopen();
-char s[DEFILE_SIZE];
-char *inifile, *r;
-int ini_err = 0;
+char s[84];
 
-printf( "\n\tSteve Moshier's Ephemeris Reader v5.4f\n\n" );
-#if DE431BSP
-printf( "Planetary positions are from DE431.BSP.\n" );
-inifile = "aa431_bsp.ini";
-#endif
-#if DE430BSP
-printf( "Planetary positions are from DE430.BSP.\n" );
-inifile = "aa430_bsp.ini";
-#endif
-#if DE421BSP
-printf( "Planetary positions are from DE421.BSP.\n" );
-inifile = "aa421_bsp.ini";
-#endif
-#if DE408BSP
-printf( "Planetary positions are from DE408.BSP.\n" );
-inifile = "aa408_bsp.ini";
-#endif
-#if DE400
-printf( "Planetary positions are from DE400.\n" );
-inifile = "aa400.ini";
-#endif
-#if DE403
-printf( "Planetary positions are from DE403.\n" );
-inifile = "aa403.ini";
-#endif
-#if LIB403
-printf( "Librations from long DE404 file.\n" );
-inifile = "lib403.ini";
-#endif
-#if DE404
-printf( "Planetary positions are from DE404.\n" );
-inifile = "aa404.ini";
-#endif
-#if DE405
-printf( "Planetary positions are from DE405.\n" );
-inifile = "aa405.ini";
-#endif
-#if DE406 | DE406CD
-printf( "Planetary positions are from DE406.\n" );
-inifile = "aa406.ini";
-#endif
-#if DE245
-printf( "Planetary positions are from DE245.\n" );
-inifile = "aa245.ini";
-#endif
-#if DE200 | DE200CD
-printf( "Planetary positions are from DE200.\n" );
-inifile = "aa200.ini";
-#endif
-#if DE102
-printf( "Planetary positions are from DE102.\n" );
-inifile = "aa102.ini";
-#endif
-#if SSYSTEM
-printf( "Planetary positions are from ssystem.exe.\n" );
-inifile = "aa118i.ini";
+printf( "\n\tSteve Moshier's Ephemeris Program v5.6\n\n" );
+printf( "Planetary and lunar positions approximate DE404.\n" );
+
+f = fopen( "aa.ini", "r" );
+
+#if unix
+if (f == NULL)
+  {
+    f = fopen( "/etc/aa.ini", "r" );
+  }
 #endif
 
-f = fopen( inifile, "r" );
-
+if (f == NULL)
+   {
+     printf ("? Warning, initialization file aa.ini not found.\n");
+   }
 if( f )
 	{
-	r = fgets( s, 80, f );
-	if (r != s)
-	  ini_err |= 1;
+	fgets( s, 80, f );
 	sscanf( s, "%lf", &tlong );
-	r = fgets( s, 80, f );
-	if (r != s)
-	  ini_err |= 2;
+	fgets( s, 80, f );
 	sscanf( s, "%lf", &glat );
-	r = fgets( s, 80, f );
-	if (r != s)
-	  ini_err |= 4;
+	fgets( s, 80, f );
 	sscanf( s, "%lf", &height );
 	u = glat * DTR;
 
@@ -174,6 +116,7 @@ if( f )
 	if( glat < 0.0 )
 		tlat = -tlat;
 	trho /= aearth;
+
 /* Reduction from geodetic latitude to geocentric latitude
  * AA page K5
  */
@@ -193,19 +136,13 @@ if( f )
 	printf( "geocentric latitude %.4f deg\n", tlat );
 	printf( "Earth radius %.5f\n", trho );
 
-	r = fgets( s, 80, f );
-	if (r != s)
-	  ini_err |= 8;
+	fgets( s, 80, f );
 	sscanf( s, "%lf", &attemp );
 	printf( "temperature %.1f C\n", attemp );
-	r = fgets( s, 80, f );
-	if (r != s)
-	  ini_err |= 16;
+	fgets( s, 80, f );
 	sscanf( s, "%lf", &atpress );
 	printf( "pressure %.0f mb\n", atpress );
-	r = fgets( s, 80, f );
-	if (r != s)
-	  ini_err |= 32;
+	fgets( s, 80, f );
 	sscanf( s, "%d", &jdflag );
 	switch( jdflag )
 		{
@@ -218,35 +155,18 @@ if( f )
 		default: printf("Illegal jdflag\n" );
 		exit(0);
 		}
-	r = fgets( s, 80, f );
-	if (r != s)
-	  ini_err |= 64;
+	fgets( s, 80, f );
 	sscanf( s, "%lf", &dtgiven );
 	if( dtgiven != 0.0 )
 		printf( "Using deltaT = %.2fs.\n", dtgiven );
-	r = fgets( s, DEFILE_SIZE, f );
-	if (r != s)
-	  ini_err |= 128;
-	sscanf( s, "%s", &defile[0] ); /* file containing DE data */
-#if DE431BSP
-	strncpy (defile_part_1, defile, DEFILE_SIZE);
-	r = fgets( s, DEFILE_SIZE, f );
-	if (r != s)
-	  ini_err |= 256;
-	sscanf( s, "%s", &defile[0] ); /* file containing DE data */
-#endif
 	fclose(f);
 	}
-/* Open up ASCII output ephemeris file.  */
-ephfile = fopen( "eph.ans", "w" );
-ephprint = 0;
-
-/* Calculate speed of light in astronomical units per day.  */
-Clight = clight; /* meters per second */
-Clightaud = Clight * 86400.0 / au;
-/* Equatorial radius of the earth, in au.  */
-Rearthau = radearth / au;
-return(ini_err);
+Clightaud = 86400.0 * Clight / au;
+/* Radius of the earth in au
+   Thanks to Min He <Min.He@businessobjects.com> for pointing out
+   this needs to be initialized early.  */
+Rearth = 0.001 * aearth / au;
+return(0);
 }
 
 
@@ -284,8 +204,7 @@ el->obname[15] = '\0';
 
 /* Clear out the rest of the data structure
  */
-el->oelmnt = 0;
-el->celmnt = 0;
+el->ptable = 0;
 el->L = 0.0;
 el->r = 0.0;
 el->plat = 0.0;
@@ -297,7 +216,7 @@ else
 	{
 	u = (char *)&earth;
 	v = (char *)el;
-	for( i = 0; i < ((int) sizeof(struct orbit)); i++ )
+	for( i=0; i < (int) sizeof(struct orbit); i++ )
 		*u++ = *v++;
 	printf( "Read in earth orbit\n" );
 	return(1);
@@ -309,11 +228,12 @@ else
 int getstar(el)
 struct star *el;
 {
-int i, sign;
-char s[128], *p;
-double rh, rm, rs, dd, dm, ds;
-double x, z;
+int sign;
+char s[128];
+double rh, rm, rs, dd, dm, ds, x, z;
 FILE *f;
+char *p;
+int i;
 
 getnum( "Name of star catalogue file: ", starnam, strfmt );
 f = fincat( starnam, 1, s, (char *)0 );
@@ -408,8 +328,6 @@ char *str1, *str2;
 {
 int i;
 FILE *f, *fopen();
-char *r;
-int ini_err;
 
 f = fopen( name, "r" );
 if( f == 0 )
@@ -425,16 +343,12 @@ if( linenum <= 0 )
 for( i=0; i<linenum; i++ )
 	{
 
-	r = fgets( str1, 126, f );
-	if (r != str1)
-	  ini_err |= 512;
+	fgets( str1, 126, f );
 	if( *str1 == '-' )
 		goto endf;
 	if( n > 1 )
 		{
-		r = fgets( str2, 126, f );
-		if (r != str2)
-		  ini_err |= 1024;
+		fgets( str2, 126, f );
 		if( *str2 == '-' )
 			goto endf;
 		}

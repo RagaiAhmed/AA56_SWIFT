@@ -139,7 +139,6 @@ return(0);
 }
 
 
-
 /* Compute stellar ephemeris for ELOBJECT at time TDT.  */
  
 extern struct orbit *elobject;

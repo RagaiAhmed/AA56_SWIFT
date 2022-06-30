@@ -35,13 +35,13 @@ be used and distributed freely provided this notice is retained
 and source code is included with all distributions.
 */
 
-
-extern double PI;
 #if __STDC__
 double atan (double);
 #else
 double atan();
 #endif
+
+extern double PI;
 
 double zatan2( x, y )
 double x, y;

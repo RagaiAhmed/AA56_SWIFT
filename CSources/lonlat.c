@@ -1,16 +1,14 @@
 
-/* Display ecliptic longitude and latitude (for
- * equinox of date, if ofdate nonzero).
- * Input pp is equatorial rectangular
+/* Display ecliptic longitude and latitude for
+ * equinox of date.  Input is equatorial rectangular
  * coordinates for equinox J2000.
  */
 
 #include "kep.h"
 
-
 int lonlat( pp, J, polar, ofdate )
 double pp[], J, polar[];
-int ofdate;
+int ofdate; /* 1 means precess from J2000 to date J.  */
 {
 double s[3], x, y, z, yy, zz, r;
 int i;
@@ -28,18 +26,13 @@ for( i=0; i<3; i++ )
 r = sqrt(r);
 
 /* Precess to equinox of date J
- * if flag is set
  */
 if( ofdate )
-	{
 	precess( s, J, -1 );
-	epsiln(J);
-	}
-else
-	epsiln(J2000);
 
 /* Convert from equatorial to ecliptic coordinates
  */
+epsiln(J);
 yy = s[1];
 zz = s[2];
 x  = s[0];
@@ -60,6 +53,6 @@ printf( "ecliptic long" );
 dms( yy );
 printf( " lat" );
 dms( zz );
-printf( " rad %.9E\n", r );
+printf( " rad %.6E\n", r );
 return(0);
 }

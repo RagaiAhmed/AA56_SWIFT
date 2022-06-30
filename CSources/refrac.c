@@ -15,7 +15,6 @@ double tan (double);
 double tan();
 #endif
 
-
 double refrac(alt)
 double alt;	/* altitude in degrees */
 {

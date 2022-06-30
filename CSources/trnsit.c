@@ -21,10 +21,15 @@ double r_trnsit;
 double r_rise;
 double r_set;
 double elevation_threshold, semidiameter;
-int f_trnsit, southern_hemisphere;
+int f_trnsit;
+int found_rise, found_set;
 int no_rise_set (double, int (*)());
 
 double search_halve (double tl, double yl, double th, double yh, int (* func)());
+int iter_trnsit( int (* func)() );
+static void iter_func( double t, int (* func)() );
+
+
 
 int trnsit(J, lha, dec)
 double J; /* Julian date */
@@ -34,9 +39,9 @@ double dec; /* declination, radians */
 double x, y, z, N, D, TPI;
 double lhay, cosdec, sindec, coslat, sinlat;
 
-f_trnsit = 0;
 TPI = 2.0*PI;
 /* Initialize to no-event flag value. */
+f_trnsit = 0;
 r_rise = -10.0;
 r_set = -10.0;
 /* observer's geodetic latitude, in radians */
@@ -47,18 +52,12 @@ sinlat = sin(x);
 cosdec = cos(dec);
 sindec = sin(dec);
 
-if (sinlat < 0)
-  southern_hemisphere = 1;
- else
-   southern_hemisphere = 0;
-
 /* Refer to same start of date as iter_trnsit,
    so r_trnsit means the same thing in both programs.  */
  x = floor(J - 0.5) + 0.5;
  x = (J - x) * TPI;
 /* adjust local hour angle */
 y = lha;
-/* printf ("%.7f,", lha); */
 while( y < -PI )
 	y += TPI;
 while( y > PI )
@@ -66,8 +65,7 @@ while( y > PI )
 lhay = y;
 y =  y/( -dradt/TPI + 1.00273790934);
 r_trnsit = x - y;
-/* printf ("rt %.7f ", r_trnsit); */
-/* Ordinarily never print here.  */
+/* Ordinarily do not print here.  */
 if( prtflg > 1 )
 	{
 	printf( "approx local meridian transit" );
@@ -113,7 +111,7 @@ y = (N - sinlat*sindec)/(coslat*cosdec);
 
 if( (y < 1.0) && (y > -1.0) )
 	{
-	f_trnsit = 1;
+	f_trnsit = 3;
 /* Derivative of y with respect to declination
  * times rate of change of declination:
  */
@@ -125,7 +123,7 @@ if( (y < 1.0) && (y > -1.0) )
 	D = -dradt/TPI + 1.00273790934;
 	r_rise = x - (lhay + y)*(1.0 + z)/D;
 	r_set = x - (lhay - y)*(1.0 - z)/D;
-	/* Ordinarily never print here.  */
+	/* Ordinarily do not print here.  */
 		if( prtflg > 1 )
 		{
 		printf( "rises approx " );
@@ -177,7 +175,7 @@ int (* func)();
 {
   double JDsave, TDTsave, UTsave;
   double date, date_trnsit, t0, t1;
-  double rise1, set1, trnsit1, loopctr, retry;
+  double rise1, set1, trnsit1, loopctr;
   double TPI;
   int prtsave;
 
@@ -187,7 +185,6 @@ int (* func)();
   JDsave = JD;
   TDTsave = TDT;
   UTsave = UT;
-  retry = 0;
   /* Start iteration at time given by the user.  */
   t1 = UT;
 
@@ -212,10 +209,10 @@ int (* func)();
   set1 = r_set;
 
 
-  if (f_trnsit == 0)
+  if (f_trnsit != 3)
     {
-      /* Rise or set time not found.  Apply a search technique to
-	 check near inferior transit if object is above horizon now.  */
+      /* Rise or set time not found.  Apply a search technique
+	 if object is above horizon now.  */
       t_rise = -1.0;
       t_set = -1.0;
       if (elevation > elevation_threshold)
@@ -239,7 +236,7 @@ int (* func)();
       iter_func(t0, func);
       /* Skip out if no event found.  */
 
-      if (f_trnsit == 0)
+      if ((f_trnsit & 1) == 0)
 	{
 	  /* Rise or set time not found.  Apply search technique.  */
 	  t_rise = -1.0;
@@ -250,7 +247,7 @@ int (* func)();
       if (++loopctr > 10)
 	{
 	  printf ("? Rise time did not converge.\n");
-	  f_trnsit = 0;
+	  f_trnsit &= ~1;
 	  goto prtrnsit;
 	}
       t1 = date + r_rise / TPI;
@@ -279,7 +276,7 @@ int (* func)();
     {
       t0 = t1;
       iter_func(t0, func);
-      if (f_trnsit == 0)
+      if ((f_trnsit & 2) == 0)
 	{
 	  /* Rise or set time not found.  Apply search technique.  */
 	  t_rise = -1.0;
@@ -290,7 +287,7 @@ int (* func)();
       if (++loopctr > 10)
 	{
 	  printf ("? Set time did not converge.\n");
-	  f_trnsit = 0;
+	  f_trnsit &= ~2;
 	  goto prtrnsit;
 	}
       t1 = date + r_set / TPI;
@@ -311,13 +308,13 @@ prtrnsit:
   printf( "local meridian transit " );
   UT = t_trnsit;
   jtocal (t_trnsit);
-  if (t_rise != -1.0)
+  if (f_trnsit & 1)
     {
       printf( "rises " );
       UT = t_rise;
       jtocal (t_rise);
     }
-  if (t_set != -1.0)
+  if (f_trnsit & 2)
     {
       printf( "sets " );
       UT = t_set;
@@ -342,7 +339,7 @@ no_trnsit:
   prtflg = 0;
   update();
   prtflg = prtsave;
-  f_trnsit = 1;
+  f_trnsit = 3;
   return 0;
 }
 
@@ -351,17 +348,15 @@ no_trnsit:
    this function steps between the transit time and the previous
    or next inferior transits to find an event more reliably.  */
 
-#define STEP_SCALE 0.5
-
 int no_rise_set (t0, func)
      double t0;
      int (* func)();
 {
   double t_trnsit0 = t_trnsit;
   double el_trnsit0 = elevation_trnsit;
-  double t, e;
   double t_above, el_above, t_below, el_below;
-
+  double el1, el2, t1, t2;
+  
   /* Step time toward previous inferior transit to find
      whether a rise event was missed.  The step size is a function
      of the azimuth and decreases near the transit time.  */
@@ -369,114 +364,93 @@ int no_rise_set (t0, func)
   el_above = el_trnsit0;
   t_below = -1.0;
   el_below = el_above;
-  t = t_trnsit0 - 0.25;
-  e = 1.0;
-  while (e > 0.005)
+
+  t1 = t_trnsit0;
+  t2 = t1;
+  el1 = el_trnsit0;
+
+  for (;;)
     {
-      iter_func(t, func);
-      if (elevation > elevation_threshold)
+      if ((t_trnsit0 - t2) > 1.0)
+	break;
+      t2 = t1 - 0.25;
+      iter_func(t2, func);
+      el2 = elevation;
+
+      if (el2 < elevation_threshold)
 	{
-	  /* Object still above horizon.  */
-	  t_above = t;
-	  el_above = elevation;
-	}
-      else
-	{
-	  /* Object is below horizon.  Rise event is bracketed.
+	  /* Object is below horizon at t2.  Rise event is bracketed.
 	     Proceed to interval halving search.  */
-	  t_below = t;
+	  t_below = t2;
 	  el_below = elevation;
-	  goto search_rise;
+	  t_above = t1;
+	  el_above = el1;
+	  t_rise = search_halve (t_below, el_below,
+				 t_above, el_above, func);
+	  f_trnsit |= 1;
+	  break;
 	}
-      /* Step time by an amount proportional to the azimuth deviation.  */
-      e = azimuth/360.0;
-      if (azimuth < 180.0)
+      if (el2 < el1)
 	{
-	  if (southern_hemisphere == 0)
-	    t -= STEP_SCALE * e;
-	  else
-	    t += STEP_SCALE * e;
+	  /* decreasing elevation, continue */
+	  t1 = t2;
+	  el1 = el2;
+	  continue;
 	}
-      else
-	{
-	  e = 1.0 - e;
-	  if (southern_hemisphere == 0)
-	    t += STEP_SCALE * e;
-	  else
-	    t -= STEP_SCALE * e;
-	}
-    };
-
-  /* No rise event detected.  */
-
+      /* Non-decreasing elevation. Stop. */
+      break;
+    }
   if (elevation > elevation_threshold)
     {
+      /* No rise event detected.  */
       /* printf ("Previous inferior transit is above horizon.\n"); */
-      t_rise = -1.0;
-      goto next_midnight;
+      f_trnsit &= ~1;
     }
-  /* Find missed rise time. */
-search_rise:
-  t_rise = search_halve (t_below, el_below,
-			 t_above, el_above, func);
-  f_trnsit = 1;
 
-next_midnight:
 
   /* Step forward in time toward the next inferior transit.  */
-  t_above = t_trnsit0;
-  el_above = el_trnsit0;
-  t_below = -1.0;
-  el_below = el_above;
-  t = t_trnsit0 + 0.25;
-  e = 1.0;
-  while (e > 0.005)
+  t1 = t_trnsit0;
+  t2 = t1;
+  el1 = el_trnsit0;
+
+  for (;;)
     {
-      iter_func(t, func);
-      if (elevation > elevation_threshold)
+      if ((t2 - t_trnsit0) > 1.0)
+	break;
+      t2 = t1 + 0.25;
+      iter_func(t2, func);
+      el2 = elevation;
+
+      if (el2 < elevation_threshold)
 	{
-	  /* Object still above horizon.  */
-	  t_above = t;
-	  el_above = elevation;
-	}
-      else
-	{
-	  /* Object is below horizon.  Event is bracketed.
+	  /* Object is below horizon at t2.  Set event is bracketed.
 	     Proceed to interval halving search.  */
-	  t_below = t;
+	  t_below = t2;
 	  el_below = elevation;
-	  goto search_set;
+	  t_above = t1;
+	  el_above = el1;
+	  t_set = search_halve (t_below, el_below,
+				 t_above, el_above, func);
+	  f_trnsit |= 2;
+	  break;
 	}
-      /* Step time by an amount proportional to the azimuth deviation.  */
-      e = azimuth/360.0;
-      if (azimuth < 180.0)
+      if (el2 < el1)
 	{
-	  if (southern_hemisphere == 0)
-	    t -= STEP_SCALE * e;
-	  else
-	    t += STEP_SCALE * e;  /* Southern hemisphere observer.  */
+	  /* decreasing elevation, continue */
+	  t1 = t2;
+	  el1 = el2;
+	  continue;
 	}
-      else
-	{
-	  e = 1.0 - e;
-	  if (southern_hemisphere == 0)
-	    t += STEP_SCALE * e;
-	  else
-	    t -= STEP_SCALE * e;
-	}
-    };
+      /* Non-decreasing elevation. Stop. */
+      break;
+    }
 
   if (elevation > elevation_threshold)
     {
+      /* No set event detected.  */
       /* printf ("Next inferior transit is above horizon.\n"); */
-      t_set = -1.0;
-      return 0;
+      f_trnsit &= ~2;
     }
-  /* Find missed set time. */
-search_set:
-  t_set = search_halve (t, elevation,
-			t_trnsit, elevation_trnsit, func);
-  f_trnsit = 1;
   return 0;
 }
 
@@ -492,10 +466,9 @@ search_halve (t1, y1, t2, y2, func)
      double y2;
      int (* func)();
 {
-  double e2, e1, em, tm, ym;
+  double e2, em, tm, ym;
 
   e2 = y2 - elevation_threshold;
-  e1 = y1 - elevation_threshold;
   tm = 0.5 * (t1 + t2);
 
 while( fabs(t2 - t1) > .00001 )
@@ -516,7 +489,6 @@ while( fabs(t2 - t1) > .00001 )
       {
 	y1 = ym;
 	t1 = tm;
-	e1 = em;
       }
   }
 return (tm);

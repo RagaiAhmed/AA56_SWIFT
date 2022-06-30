@@ -86,8 +86,6 @@ double x;
 double s;
 int d, m;
 
-if(ephprint)
-  fprintf( ephfile, " %.10e", x );
 s = x * RTD;
 if( s < 0.0 )
 	{
@@ -95,9 +93,7 @@ if( s < 0.0 )
 	s = -s;
 	}
 else
-	{
 	printf( "  " );
-	}
 d = (int) s;
 s -= d;
 s *= 60;
@@ -122,8 +118,6 @@ int h, m;
 long sint, sfrac;
 double s;
 
-if(ephprint)
-  fprintf( ephfile, " %.10e", x );
 s = x * RTOH;
 if( s < 0.0 )
 	s += 24.0;
@@ -245,13 +239,6 @@ pdate:
 return(J);
 }
 
-#define jan_1_1_AD 1721423.5
-#define jan_1_1_BC 1721057.5
-#define i_jan_1_1_AD 1721423
-#define i_jan_1_1_BC 1721057
-
-static int
-m_day[] = {1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366};
 
 
 /*     Calculate Julian day from Gregorian calendar date
@@ -302,16 +289,6 @@ if( year <= 1582L )
 julius:
 	printf( " Julian Calendar assumed.\n" );
 	b = -38;
-	if (year < -4700) /* Handle negative Julian dates.  */
-	  {
-	    y = -year - 1;
-	    e = y / 4;
-	    c = m_day[month - 1] + day - 1;
-	    if (((y - 4 * e) == 0) && (month >= 3))
-	      c += 1;
-	    J = (double) (i_jan_1_1_BC - (365 * y + e) + c - 1) + 0.5;
-	    return (J);
-	  }
 	}
 else
 	{ /* -number of century years that are not leap years */
@@ -330,49 +307,6 @@ return( J );
 
 
 
-/* Calendar date from Julian day, valid for B.C. dates.  */
-
-void bc_jtoc (double J, long *jtoc_year, int *jtoc_month, int *jtoc_day)
-{
-  int jd, day, not_leap, doy;
-  int y, m, e, jd_jan_1, x_year;
-
-  jd = J + 0.5;
-
-  e = i_jan_1_1_BC - jd;
-  y = (100 * e + 36600) / 36525;  /* Julian year */
-  jd_jan_1 = i_jan_1_1_BC - (36525 * y) / 100;
-  x_year = -1 - y;
-  e = y / 4;
-  not_leap = y - 4 * e;
-  doy = jd - jd_jan_1 + 1;
-  if (not_leap == 0)
-    {
-      if (doy == 61)
-	{
-	  m = 1;
-	  goto find_day;
-	}
-      else if (doy > 61)
-	{
-	  doy -= 1;
-	}
-    }
-  m = (100 * (doy + 1)) / 3061;
-  if (m >= 12)
-    {
-      m -= 12;
-      doy -= 365;
-      x_year += 1;
-    }
- find_day:
-  day = doy - m_day[m];
-  *jtoc_year = x_year;
-  *jtoc_month = m + 1;
-  *jtoc_day = day;
-}
-
-
 
 /* Calculate month, day, and year from Julian date */
 
@@ -384,20 +318,12 @@ long year, a, c, d, x, y, jd;
 int BC;
 double dd;
 
-jd = (long) (J + 0.5); /* round Julian date up to integer */
-
 if( J < 1721423.5 ) /* January 1.0, 1 A.D. */
-  {
 	BC = 1;
-	if (J < 4748.5)  /* Jan 1, 4700 B.C. */
-	  {
-	    bc_jtoc (J, &year, &month, &day);
-	    goto print_cal;
-	  }
-  }
 else
 	BC = 0;
 
+jd = (long) (J + 0.5); /* round Julian date up to integer */
 
 /* Find the number of Gregorian centuries
  * since March 1, 4801 B.C.
@@ -434,28 +360,19 @@ year = d - 4715;
 if( month > 2 )
 	year -= 1;
 
-cyear = year;
-if (BC)
-        {
-	year = -year + 1;
-	cyear = -year;
-        }
-
-print_cal:
-
 /* Day of the week. */
-if (jd > 0)
-   a = (jd + 1) % 7;
- else
-   a = 6 - ((5 - jd) % 7);
+a = (jd + 1) % 7;
 
 /* Fractional part of day. */
 dd = day + J - jd + 0.5;
 
 /* post the year. */
+cyear = year;
 
 if( BC )
 	{
+	year = -year + 1;
+	cyear = -year;
 	if( prtflg )
 		printf( "%ld B.C. ", year );
 	}
@@ -554,9 +471,6 @@ char *msg;
 void *num;
 char *format;
 {
-#ifdef ZERO_INPUTS
-return 0;
-#endif // ZERO_INPUTS
 char s[40];
 
 printf( "%s (", msg );
@@ -571,9 +485,7 @@ else if( format == lngfmt )
 else
 	printf( "Illegal input format\n"  );
 printf( ") ? ");
-s[0] = '\0';
-if (fgets(s, 40, stdin) != s)
-   return -1;
+fgets(s, 80, stdin);
 if( s[0] != '\0' )
 	sscanf( s, format, num );
 return(0);

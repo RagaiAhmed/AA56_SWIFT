@@ -4,15 +4,15 @@
  * The answers are posted in the following global locations:
  */
 
-double SE = 0.0;	/* earth-sun distance */
-double SO = 0.0;	/* object-sun distance */
-double EO = 0.0;	/* object-earth distance */
-
-double pq = 0.0;	/* cosine of sun-object-earth angle */
-double ep = 0.0;	/* -cosine of sun-earth-object angle */
-double qe = 0.0;	/* cosine of earth-sun-object angle */
-
 #include "kep.h"
+
+double FAR SE;	/* earth-sun distance */
+double FAR SO;	/* object-sun distance */
+double FAR EO;	/* object-earth distance */
+
+double FAR pq;	/* cosine of sun-object-earth angle */
+double FAR ep;	/* -cosine of sun-earth-object angle */
+double FAR qe;	/* cosine of earth-sun-object angle */
 
 
 int angles( p, q, e )

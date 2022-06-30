@@ -53,7 +53,7 @@ double deltat_value;
 
 #define DEMO 0
 #define TABSTART 1620
-#define TABEND 2011
+#define TABEND 2017
 #define TABSIZ (TABEND - TABSTART + 1)
 
 /* Morrison and Stephenson (2004)
@@ -129,7 +129,7 @@ short dt[TABSIZ] = {
  5054, 5138, 5217, 5296, 5379, 5434, 5487, 5532, 5582, 5630,
  5686, 5757, 5831, 5912, 5998, 6078, 6163, 6230, 6297, 6347,
  6383, 6409, 6430, 6447, 6457, 6469, 6485, 6515, 6546, 6578,
- 6607, 6632,
+ 6607, 6632, 6660, 6691, 6728, 6764, 6810, 6859
 };
 
 
@@ -163,7 +163,6 @@ if( Y > TABEND )
         /* Cubic interpolation between last tabulated value
            and long-term curve evaluated at 100 years later.  */
 
-#if (TABEND - 2011)
         /* Last tabulated delta T value. */
         a = 0.01 * dt[TABSIZ-1];
         /* Approximate slope in past 10 years. */
@@ -181,10 +180,6 @@ if( Y > TABEND )
         d = 2.0e-6 * (50.0 * (m1 + b) - m0 + a);
         c = 1.0e-4 * (m0 - a - 100.0 * b - 1.0e6 * d);
 
-        /* Compute polynomial value at desired time. */
-        p = Y - TABEND;
-        ans = a + p * (b  + p * (c + p * d));
-#else
         /* Note, the polynomial coefficients do not depend on Y.
            A given tabulation and long-term formula
            determine the polynomial.
@@ -197,8 +192,7 @@ if( Y > TABEND )
 
         /* Compute polynomial value at desired time. */
         p = Y - TABEND;
-        ans = 66.32 + p * (0.223  + p * (0.03231376  - 0.0001607784 * p ));
-#endif
+        ans = a + p * (b  + p * (c + p * d));
     }
     return ans;
 }
