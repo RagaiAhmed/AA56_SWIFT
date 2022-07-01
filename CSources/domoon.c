@@ -88,6 +88,7 @@ nutate( TDT, re );
 for (i = 0; i < 3; i++)
   re[i] *= z;
 lonlat( re, TDT, pe, 0 );
+
 prtflg = prtsav; /* reenable display */
 
 /* Find sun-moon-earth angles */

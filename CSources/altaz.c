@@ -4,7 +4,7 @@
  *
  * Ephemeris transit times can be obtained by modifying
  * aa.ini to declare TDT = UT.
- * 
+ *
  * This program assumes that deltaT, the difference
  * between Ephemeris Time (TDT) and Universal Time (UT),
  * has already been calculated.  The global variables
@@ -28,6 +28,9 @@ int altaz( pol, J )
 double pol[3];
 double J;
 {
+respolar[0] = pol[0];
+respolar[1] = pol[1];
+respolar[2] = pol[2];
 double dec, cosdec, sindec, lha, coslha, sinlha;
 double ra, dist, last, alt, az, coslat, sinlat;
 double N, D, x, y, z, TPI;

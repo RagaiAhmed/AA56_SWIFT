@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include "plantbl.h"
 
+double respolar[3];
+char starnam[80];
+char orbnam[80];
+
 struct orbit
 	{
 	char obname[16]; /* name of the object */
@@ -84,7 +88,7 @@ extern double jvearth, vearth[];
 #define ANSIPROT
 #else
 int showrd(), showcor(), dms(), hms(), jtocal(), epsiln();
-int fk4fk5(), kepler(), kinit(), getnum(), deltap();
+int fk4fk5(), kepler(), kinit(char oath[]), getnum(), deltap();
 int lonlat(), nutate(), precess(), reduce(), rstar();
 int lightt(), velearth(), diurpx(), diurab(), update();
 int relativity(), showcname(), annuab(), angles(), altaz();

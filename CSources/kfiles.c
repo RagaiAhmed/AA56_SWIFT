@@ -30,8 +30,8 @@ FILE *fincat();
 
 extern char *intfmt, *strfmt;/* see dms.c */
 
-static char starnam[80] = {'s','t','a','r','.','c','a','t','\0'};
-static char orbnam[80] = {'o','r','b','i','t','.','c','a','t','\0'};
+char starnam[80] = {'s','t','a','r','.','c','a','t','\0'};
+char orbnam[80] = {'o','r','b','i','t','.','c','a','t','\0'};
 static int linenum = 1;
 
 /* Read initialization file aa.ini
@@ -68,27 +68,21 @@ double Clightaud; /* C in au/day  */
 extern double tlong, tlat, glat, trho, attemp, atpress, dtgiven;
 extern double Rearth;
 
-int kinit()
+int kinit(char path[])
 {
 double a, b, fl, co, si, u;
 FILE *f, *fopen();
 char s[84];
 
-printf( "\n\tSteve Moshier's Ephemeris Program v5.6\n\n" );
-printf( "Planetary and lunar positions approximate DE404.\n" );
+//printf( "\n\tSteve Moshier's Ephemeris Program v5.6\n\n" );
+//printf( "Planetary and lunar positions approximate DE404.\n" );
 
-f = fopen( "aa.ini", "r" );
-
-#if unix
-if (f == NULL)
-  {
-    f = fopen( "/etc/aa.ini", "r" );
-  }
-#endif
+f = fopen( path, "r" );
 
 if (f == NULL)
    {
-     printf ("? Warning, initialization file aa.ini not found.\n");
+       return 1;
+     //printf ("? Warning, initialization file aa.ini not found.\n");
    }
 if( f )
 	{
@@ -132,33 +126,33 @@ if( f )
 		+ 0.000000008 * cos(6.0*u);
 	trho += height/6378160.;
 */
-	printf( "Terrestrial east longitude %.4f deg\n", tlong );
+	/*printf( "Terrestrial east longitude %.4f deg\n", tlong );
 	printf( "geocentric latitude %.4f deg\n", tlat );
 	printf( "Earth radius %.5f\n", trho );
-
+*/
 	fgets( s, 80, f );
 	sscanf( s, "%lf", &attemp );
-	printf( "temperature %.1f C\n", attemp );
+	//printf( "temperature %.1f C\n", attemp );
 	fgets( s, 80, f );
 	sscanf( s, "%lf", &atpress );
-	printf( "pressure %.0f mb\n", atpress );
+	//printf( "pressure %.0f mb\n", atpress );
 	fgets( s, 80, f );
 	sscanf( s, "%d", &jdflag );
 	switch( jdflag )
 		{
-		case 0: printf("TDT and UT assumed equal.\n");
+		case 0: //printf("TDT and UT assumed equal.\n");
 			break;
-		case 1: printf("Input time is TDT.\n" );
+		case 1: //printf("Input time is TDT.\n" );
 			break;
-		case 2: printf("Input time is UT.\n" );
+		case 2: //printf("Input time is UT.\n" );
 			break;
-		default: printf("Illegal jdflag\n" );
-		exit(0);
+		default: //printf("Illegal jdflag\n" );
+            return 1;//exit(0);
 		}
 	fgets( s, 80, f );
 	sscanf( s, "%lf", &dtgiven );
 	if( dtgiven != 0.0 )
-		printf( "Using deltaT = %.2fs.\n", dtgiven );
+		//printf( "Using deltaT = %.2fs.\n", dtgiven );
 	fclose(f);
 	}
 Clightaud = 86400.0 * Clight / au;
@@ -183,14 +177,14 @@ char s1[128], s2[128], *u, *v;
 int i;
 
 
-getnum( "Name of orbit catalogue file: ", orbnam, strfmt );
+//getnum( "Name of orbit catalogue file: ", orbnam, strfmt );
 f = fincat( orbnam, 2, s1, s2 );
 if( f == 0 )
 	return(-1); /* failure flag */
 
 
-printf( "%s\n", s1 );
-printf( "%s\n", s2 );
+//printf( "%s\n", s1 );
+//printf( "%s\n", s2 );
 
 /* Read in ASCII floating point numbers
  */
@@ -200,7 +194,6 @@ sscanf( s1, "%lf %lf %lf %lf %lf %lf",
 sscanf( s2, "%lf %lf %lf %lf %lf %15s", &el->ecc, &el->M,
 	&el->equinox, &el->mag, &el->sdiam, &el->obname[0] );
 
-el->obname[15] = '\0';
 
 /* Clear out the rest of the data structure
  */
@@ -218,7 +211,7 @@ else
 	v = (char *)el;
 	for( i=0; i < (int) sizeof(struct orbit); i++ )
 		*u++ = *v++;
-	printf( "Read in earth orbit\n" );
+	//printf( "Read in earth orbit\n" );
 	return(1);
 	}
 }
@@ -235,7 +228,7 @@ FILE *f;
 char *p;
 int i;
 
-getnum( "Name of star catalogue file: ", starnam, strfmt );
+//getnum( "Name of star catalogue file: ", starnam, strfmt );
 f = fincat( starnam, 1, s, (char *)0 );
 if( f == 0 )
 	return(-1); /* failure flag */
@@ -336,7 +329,8 @@ if( f == 0 )
 	return(0); /* failure flag */
 	}
 
-getnum( "Line number", &linenum, intfmt );
+linenum=1;
+//getnum( "Line number", &linenum, intfmt );
 if( linenum <= 0 )
 	goto failure;
 

@@ -16,7 +16,6 @@
  */
 
 
-
 /* Conversion factors between degrees and radians */
 double DTR = 1.7453292519943295769e-2;
 double RTD = 5.7295779513082320877e1;
@@ -36,6 +35,7 @@ double J1900 = 2415020.0;	/* 1900 January 0, 12h UT */
  * objects that orbit the sun.  See kep.h for the definition.
  */
 #include "kep.h"
+ #include "bridge.h"
 
 #ifdef __BORLANDC__
 #include <stdlib.h>
@@ -316,7 +316,7 @@ extern char *intfmt, *dblfmt;
 
 /* display enable flag
  */
-int prtflg = 1;
+int prtflg = 0;
 
 /* Tabulation parameters
  */
@@ -325,15 +325,29 @@ static int ntab = 1;
 
 struct orbit *elobject;	/* pointer to orbital elements of object */
 
+
+
 /* Main program starts here.
  */
 int main()
+{
+        printf("%d ",initCalc("aaa.ini"));
+
+     struct Polar res;
+    res = calcPolar(1656626400,0);
+    printf("%f ",res.lon);
+    printf("%f ",res.dec);
+    printf("%f ",res.r);
+    return 0 ;
+
+}
+int _main()
 {
 int i;
 
 double zgetdate(), gethms();
 
-kinit();
+//kinit();
 
 loop:
 
