@@ -99,7 +99,6 @@ struct Polar calcPolar(double UnixTimeStamp, int planet)
 
     int i;
 
-    kinit();
 
     JD = UnixTimeStamp;
     JD = JD / 86400 + 2440587.5;  // Convert to Julian day
@@ -155,7 +154,7 @@ struct Polar calcPolarPath(double UnixTimeStamp, int index, char path[])
     strcpy(orbnam,path);
     int i;
 
-    kinit();
+//    kinit();
 
 
     JD = UnixTimeStamp;
@@ -203,3 +202,8 @@ struct Polar calcPolarPath(double UnixTimeStamp, int index, char path[])
     res.r = obpolar[2];
     return res;
 }
+int initCalc(char path[])
+{
+    return kinit(path);
+}
+

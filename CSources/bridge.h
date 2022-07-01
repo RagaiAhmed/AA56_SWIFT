@@ -8,6 +8,16 @@ struct Polar {
   double r;  // Distance in AU
 };
 
+// Initializes the calculator with location on earth
+/*
+    path: aa.ini file path to init the calculator
+        notice to use
+    returns 0 if init successfully
+
+    Note: It is prefered to be called before each calc
+*/
+int initCalc(char path[]);
+
 
 // Calculates the polar coordinates of a given planet
 /*
