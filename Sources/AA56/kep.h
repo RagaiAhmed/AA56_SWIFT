@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include "plantbl.h"
 
-double respolar[3];
-char starnam[80];
-char orbnam[80];
+extern double respolar[3];
+extern char starnam[80];
+extern char orbnam[80];
 
 struct orbit
 	{

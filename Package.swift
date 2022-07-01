@@ -21,8 +21,7 @@ let package = Package(
         .target(
             name: "AA56",
             dependencies: [],
-            path: "Sources/AA56",
-            exclude: ["*.ini", "*.cat"]
+            path: "Sources/AA56"
         )
     ]
 )

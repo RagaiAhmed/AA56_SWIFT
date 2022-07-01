@@ -7,18 +7,18 @@
 /* approximate motion of right ascension and declination
  * of object, in radians per day
  */
-double FAR dradt;
-double FAR ddecdt;
+extern double FAR dradt;
+extern double FAR ddecdt;
 
 /* Space for star description read from a disc file.
  */
-struct star fstar;
+extern struct star fstar;
 
 /* Space for orbit read from a disc file. Entering 99 for the
  * planet number yields a prompt for a file name containg ASCII
  * strings specifying the elements.
  */
-struct orbit forbit;
+extern struct orbit forbit;
 
 /* Orbits for each planet.  The indicated orbital elements are
  * not actually used, since the positions are are now calculated
@@ -28,59 +28,59 @@ struct orbit forbit;
 extern struct plantbl mer404, ven404, ear404, mar404;
 extern struct plantbl jup404, sat404, ura404, nep404, plu404;
 
-struct orbit mercury;
-struct orbit venus;
+extern struct orbit mercury;
+extern struct orbit venus;
 
-struct orbit earth;
+extern struct orbit earth;
 extern struct orbit earth;
 
-struct orbit mars;
-struct orbit jupiter;
-struct orbit saturn ;
+extern struct orbit mars;
+extern struct orbit jupiter;
+extern struct orbit saturn ;
 
-struct orbit uranus;
+extern struct orbit uranus;
 
-struct orbit neptune;
+extern struct orbit neptune;
 
-struct orbit pluto ;
+extern struct orbit pluto ;
 
 
 /* coordinates of object
  */
-int objnum;	/* I.D. number of object */
-double robject[3]; /* position */
+extern int objnum;	/* I.D. number of object */
+extern double robject[3]; /* position */
 /* ecliptic polar coordinates:
  * longitude, latitude in radians
  * radius in au
  */
-double FAR obpolar[3];
+extern double FAR obpolar[3];
 
 /* coordinates of Earth
  */
 /* Heliocentric rectangular equatorial position
  * of the earth at time TDT re equinox J2000
  */
-double FAR rearth[3];
+extern double FAR rearth[3];
 /* Corresponding polar coordinates of earth:
  * longitude and latitude in radians, radius in au
  */
-double FAR eapolar[3];
+extern double FAR eapolar[3];
 
 /* Julian date of ephemeris
  */
-double JD;
-double TDT;
-double UT;
+extern double JD;
+extern double TDT;
+extern double UT;
 extern double deltat_value;
 
 /* flag = 0 if TDT assumed = UT,
  *      = 1 if input time is TDT,
  *      = 2 if input time is UT.
  */
-int jdflag;
+extern int jdflag;
 
 /* correction vector, saved for display  */
-double dp[3];
+extern double dp[3];
 
 /* display formats for printf()
  */
@@ -88,15 +88,15 @@ extern char *intfmt, *dblfmt;
 
 /* display enable flag
  */
-int prtflg;
+extern int prtflg;
 
-struct orbit *elobject;	/* pointer to orbital elements of object */
+extern struct orbit *elobject;	/* pointer to orbital elements of object */
 
 
 
 struct Polar calcPolar(double UnixTimeStamp, int planet)
 {
-
+    struct Polar res;
     int i;
 
 
@@ -120,13 +120,13 @@ struct Polar calcPolar(double UnixTimeStamp, int planet)
         case 8: elobject = &neptune; break;
         case 9: elobject = &pluto; break;
         default:
-            return;
+            return res;
         }
 
     /* Always calculate heliocentric position of the earth */
     kepler( TDT, &earth, rearth, eapolar );
 
-    struct Polar res;
+
 
     switch( objnum )
     {
@@ -150,6 +150,7 @@ struct Polar calcPolar(double UnixTimeStamp, int planet)
 
 struct Polar calcPolarPath(double UnixTimeStamp, int index, char path[])
 {
+    struct Polar res;
     strcpy(starnam,path);
     strcpy(orbnam,path);
     int i;
@@ -168,24 +169,23 @@ struct Polar calcPolarPath(double UnixTimeStamp, int index, char path[])
             elobject = (struct orbit *)&fstar;
             i = getstar( (struct star *) elobject );
             if( i == 1 )
-                return;
+                return res;
             break;
 
         case 99:
             elobject = &forbit;
             i = getorbit( elobject );
             if( i == 1)
-                return;
+                return res;
             break;
 
         default:
-            return;
+            return res;
         }
 
     /* Always calculate heliocentric position of the earth */
     kepler( TDT, &earth, rearth, eapolar );
 
-    struct Polar res;
 
     switch( objnum )
     {
