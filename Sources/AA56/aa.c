@@ -329,6 +329,8 @@ struct orbit *elobject;	/* pointer to orbital elements of object */
 
 /* Main program starts here.
  */
+ 
+ /*
 int main()
 {
         printf("%d ",initCalc("aaa.ini"));
@@ -341,6 +343,7 @@ int main()
     return 0 ;
 
 }
+*/
 int _main()
 {
 int i;
