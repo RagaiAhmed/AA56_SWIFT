@@ -22,6 +22,9 @@ let package = Package(
             name: "AA56",
             dependencies: [],
             path: "Sources/AA56"
-        )
+        ),
+        .testTarget(
+            name: "temp_swiftTests",
+            dependencies: ["AA56"])
     ]
 )
