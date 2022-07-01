@@ -3,7 +3,7 @@
 #include "kep.h"
 #include "bridge.h"
 
-
+double respolar[3];
 /* approximate motion of right ascension and declination
  * of object, in radians per day
  */
