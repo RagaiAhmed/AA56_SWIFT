@@ -334,9 +334,9 @@ struct orbit *elobject;	/* pointer to orbital elements of object */
 int main()
 {
         printf("%d ",initCalc("aaa.ini"));
-
+    initCalc("aa.ini");
      struct Polar res;
-    res = calcPolar(1656626400,0);
+    res = calcPolar(2459761.5,1);
     printf("%f ",res.lon);
     printf("%f ",res.dec);
     printf("%f ",res.r);
