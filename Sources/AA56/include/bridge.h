@@ -28,7 +28,7 @@ int initCalc(char path[]);
 
 // Calculates the polar coordinates of a given planet
 /*
-UnixTimeStamp: time in seconds
+JulianDate: time in days (Julian Date)
 
 Planet:
 0 -> Sun
@@ -46,13 +46,13 @@ Planet:
 extern "C"
 {
 #endif
-struct Polar calcPolar(double UnixTimeStamp, int planet);
+struct Polar calcPolar(double JulianDate, int planet);
 #ifdef __cplusplus
 }
 #endif
 // Calculates the polar coordinates of a given orbit/star
 /*
-UnixTimeStamp: time in seconds
+JulianDate: time in days (Julian Date)
 
 index:
 88 -> Orbit
@@ -65,7 +65,7 @@ orbit.cat & star.cat are examples
 extern "C"
 {
 #endif
-struct Polar calcPolarPath(double UnixTimeStamp, int index, char path[]);
+struct Polar calcPolarPath(double JulianDate, int index, char path[]);
 #ifdef __cplusplus
 }
 #endif

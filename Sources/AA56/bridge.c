@@ -94,14 +94,13 @@ extern struct orbit *elobject;	/* pointer to orbital elements of object */
 
 
 
-struct Polar calcPolar(double UnixTimeStamp, int planet)
+struct Polar calcPolar(double JulianDate, int planet)
 {
     struct Polar res;
     int i;
 
 
-    JD = UnixTimeStamp;
-    JD = JD / 86400 + 2440587.5;  // Convert to Julian day
+    JD = JulianDate;  // Convert to Julian day
     update(); /* find UT and ET */
 
     objnum= planet;
@@ -148,7 +147,7 @@ struct Polar calcPolar(double UnixTimeStamp, int planet)
 }
 
 
-struct Polar calcPolarPath(double UnixTimeStamp, int index, char path[])
+struct Polar calcPolarPath(double JulianDate, int index, char path[])
 {
     struct Polar res;
     strcpy(starnam,path);
@@ -158,8 +157,7 @@ struct Polar calcPolarPath(double UnixTimeStamp, int index, char path[])
 //    kinit();
 
 
-    JD = UnixTimeStamp;
-    JD = JD / 86400 + 2440587.5;  // Convert to Julian day
+    JD = JulianDate;
     update(); /* find UT and ET */
 
     objnum= index;
