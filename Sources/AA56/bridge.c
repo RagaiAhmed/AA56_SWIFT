@@ -2,6 +2,7 @@
 
 #include "kep.h"
 #include "bridge.h"
+#include <string.h>
 
 double respolar[3];
 /* approximate motion of right ascension and declination
